@@ -10,9 +10,9 @@ BASE = 'https://api.hubapi.com'
 
 OWNERS = {
     '250442122': 'Pablo Corredor',
-    '575013416': 'Santiago Carvajal',
-    '1885498': 'Juan David Arango',
-    '1329992085': 'Sebastian Carrasquilla',
+    '60495719':  'Santiago Carvajal',
+    '1430814428': 'Juan David Arango',
+    '85331798':  'Sebastian Carrasquilla',
 }
 REP_COLORS = {
     'Pablo Corredor': '#e74c3c',
