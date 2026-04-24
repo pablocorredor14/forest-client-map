@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Forest Coffee Client Map Generator — runs on GitHub Actions twice daily."""
 
-import os, json, re, math, time, requests
+import os, json, math, time, requests
 from datetime import datetime, timezone
 
 HUBSPOT_KEY = os.environ.get('HUBSPOT_API_KEY', '')
@@ -44,43 +44,56 @@ def fetch_all_companies():
     return results
 
 def fetch_2026_deals():
-    """Fetch all 2026 deals and compute revenue per company."""
-    url = f'{BASE}/crm/v3/objects/deals/search'
-    rev = {}
+    """Fetch all 2026 closed-won deals and compute revenue per company via associations."""
+    search_url = f'{BASE}/crm/v3/objects/deals/search'
+    assoc_url  = f'{BASE}/crm/v4/associations/deals/companies/batch/read'
+
+    deal_amounts = {}  # deal_id -> amount
     after = None
     while True:
         body = {
             'filterGroups': [{'filters': [
                 {'propertyName': 'closedate', 'operator': 'BETWEEN',
                  'value': '1735689600000', 'highValue': '1767225600000'},
-                {'propertyName': 'dealstage', 'operator': 'EQ', 'value': 'closedwon'}
+                {'propertyName': 'dealstage', 'operator': 'EQ', 'value': '75989797'}
             ]}],
-            'properties': ['dealname', 'amount', 'associations'],
+            'properties': ['amount'],
             'limit': 200,
         }
         if after:
             body['after'] = after
-        r = requests.post(url, headers=HEADERS, json=body)
+        r = requests.post(search_url, headers=HEADERS, json=body)
         r.raise_for_status()
         data = r.json()
         for deal in data['results']:
-            props = deal.get('properties', {})
-            name = props.get('dealname', '') or ''
-            amount = float(props.get('amount', 0) or 0)
-            # Extract company ID from deal name: "dealID - companyID - Name - ..."
-            m = re.match(r'^\d+\s*-\s*(\d+)\s*-', name)
-            if m:
-                cid = m.group(1)
-                rev[cid] = rev.get(cid, 0) + amount
-            # Also handle MARKETING DEAL pattern
-            elif 'MARKETING DEAL' in name.upper():
-                pass  # skip
+            did = str(deal['id'])
+            amount = float(deal['properties'].get('amount') or 0)
+            deal_amounts[did] = amount
         paging = data.get('paging', {})
         if 'next' in paging:
             after = paging['next']['after']
         else:
             break
         time.sleep(0.1)
+
+    # Batch-fetch company associations for all deals (max 100 per request)
+    rev = {}
+    deal_ids = list(deal_amounts.keys())
+    for i in range(0, len(deal_ids), 100):
+        batch = deal_ids[i:i+100]
+        r = requests.post(assoc_url, headers=HEADERS,
+                          json={'inputs': [{'id': did} for did in batch]})
+        if not r.ok:
+            time.sleep(0.2)
+            continue
+        for result in r.json().get('results', []):
+            did = str(result['from']['id'])
+            amount = deal_amounts.get(did, 0)
+            for to in result.get('to', []):
+                cid = str(to['toObjectId'])
+                rev[cid] = rev.get(cid, 0) + amount
+        time.sleep(0.1)
+
     return rev
 
 def goal_color(pct):
