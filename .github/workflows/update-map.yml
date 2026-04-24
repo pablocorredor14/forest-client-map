@@ -1,0 +1,39 @@
+name: Update Forest Map
+
+on:
+  schedule:
+    - cron: '0 13 * * *'   # 9 AM EST (13:00 UTC)
+    - cron: '0 21 * * *'   # 5 PM EST (21:00 UTC)
+  workflow_dispatch:         # allow manual trigger from GitHub UI
+
+jobs:
+  update-map:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Generate map
+        run: python generate_map.py
+        env:
+          HUBSPOT_API_KEY: ${{ secrets.HUBSPOT_API_KEY }}
+
+      - name: Commit and push updated map
+        run: |
+          git config user.name "Forest Map Bot"
+          git config user.email "bot@forestcol.com"
+          git add index.html
+          git diff --staged --quiet || git commit -m "Auto-update map $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
