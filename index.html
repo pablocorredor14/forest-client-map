@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Forest Coffee — US & Canada Clients 2026</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  body{margin:0;padding:0;font-family:'Segoe UI',sans-serif}#map{height:100vh;width:100%}
+  .top-bar{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;gap:8px;align-items:center}
+  .row1{background:white;border-radius:30px;padding:6px 14px;box-shadow:0 2px 12px rgba(0,0,0,0.18);display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+  .row2{display:flex;gap:8px}
+  .fbtn{border:none;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;opacity:.4}
+  .fbtn.active{opacity:1;color:white}
+  #btn-all{background:#2c3e50;color:white;opacity:1}#btn-pablo{background:#e74c3c}#btn-santiago{background:#2980b9}#btn-juan{background:#f39c12}#btn-sebastian{background:#9b59b6}
+  #search-box{border:none;border-radius:20px;padding:5px 14px;font-size:12px;width:180px;outline:none;background:#f4f4f4;color:#333}
+  #search-box::placeholder{color:#aaa}
+  .ddrop{border:none;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;background:white;box-shadow:0 2px 10px rgba(0,0,0,0.15);color:#2c3e50;outline:none;appearance:none;-webkit-appearance:none;padding-right:28px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+  .leaflet-popup-content-wrapper{border-radius:10px;padding:0;overflow:hidden;min-width:260px}.leaflet-popup-content{margin:0;width:auto!important}
+  .pc{font-family:'Segoe UI',sans-serif;font-size:13px}.ph{background:#2c3e50;color:white;padding:10px 14px;font-size:14px}
+  .ploc{padding:6px 14px 2px;color:#666;font-size:11px}.prep{padding:2px 14px 6px}
+  .badge{border-radius:12px;padding:2px 8px;font-size:11px;font-weight:600}.pm{padding:6px 14px;border-top:1px solid #eee}
+  .mrow{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}.ml{color:#888}.mv{font-weight:600;color:#2c3e50}
+  .ng{color:#aaa;font-size:11px;padding:4px 0;font-style:italic}
+  .pf2{padding:6px 14px 10px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#888}
+  .legend{position:absolute;z-index:1000;background:white;border-radius:8px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,0.15);font-size:11px}
+  .legend-goal{bottom:30px;left:12px}.legend-rep{bottom:30px;right:12px}
+  .lrow{display:flex;align-items:center;gap:6px;padding:2px 0}.ldot{width:12px;height:12px;border-radius:50%;display:inline-block}
+  .ltitle{font-weight:700;margin-bottom:4px;font-size:12px;color:#333}
+  .title-box{position:absolute;top:12px;left:12px;z-index:1000;background:white;border-radius:8px;padding:10px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
+  .title-box h3{margin:0;font-size:14px;color:#2c3e50}.title-box p{margin:2px 0 0;font-size:11px;color:#888}
+</style></head><body>
+<div id="map"></div>
+<div class="title-box"><h3>Forest Coffee — US & Canada</h3><p>2026 Client Map · 46 clients · Updated Apr 24, 2026 15:36 UTC</p></div>
+<div class="top-bar">
+  <div class="row1">
+    <input id="search-box" type="text" placeholder="🔍 Search client..." oninput="applyFilters()">
+    <button class="fbtn active" id="btn-all" onclick="setRep('all')">All (46)</button>
+    <button class="fbtn active" id="btn-pablo" onclick="setRep('Pablo Corredor')">Pablo (2)</button>
+    <button class="fbtn active" id="btn-santiago" onclick="setRep('Santiago Carvajal')">Santiago (1)</button>
+    <button class="fbtn active" id="btn-juan" onclick="setRep('Juan David Arango')">Juan David (0)</button>
+    <button class="fbtn active" id="btn-sebastian" onclick="setRep('Sebastian Carrasquilla')">Sebastian (0)</button>
+  </div>
+  <div class="row2">
+    <select id="pct-filter" class="ddrop" onchange="applyFilters()">
+      <option value="all">🎯 Achievement — All</option>
+      <option value="none">No goal set</option>
+      <option value="p0">0% achieved</option>
+      <option value="p1">1% – 10%</option>
+      <option value="p2">10% – 30%</option>
+      <option value="p3">30% – 50%</option>
+      <option value="p4">50% – 70%</option>
+      <option value="p5">70% – 100%+</option>
+    </select>
+    <select id="goal-filter" class="ddrop" onchange="applyFilters()">
+      <option value="all">💰 Goal Size — All</option>
+      <option value="none">No goal</option>
+      <option value="xs">Under $5,000</option>
+      <option value="sm">$5,000 – $15,000</option>
+      <option value="md">$15,000 – $30,000</option>
+      <option value="lg">$30,000 – $60,000</option>
+      <option value="xl">$60,000+</option>
+    </select>
+  </div>
+</div>
+<div class="legend legend-goal">
+  <div class="ltitle">2026 Goal Progress</div>
+  <div class="lrow"><span class="ldot" style="background:#27ae60"></span> ≥ 100%</div>
+  <div class="lrow"><span class="ldot" style="background:#82c91e"></span> 75–99%</div>
+  <div class="lrow"><span class="ldot" style="background:#f1c40f"></span> 50–74%</div>
+  <div class="lrow"><span class="ldot" style="background:#e67e22"></span> 25–49%</div>
+  <div class="lrow"><span class="ldot" style="background:#e74c3c"></span> < 25%</div>
+  <div class="lrow"><span class="ldot" style="background:#6c757d"></span> No goal</div>
+</div>
+<div class="legend legend-rep">
+  <div class="ltitle">Sales Rep</div>
+  <div class="lrow"><span class="ldot" style="background:#e74c3c"></span> Pablo Corredor</div>
+  <div class="lrow"><span class="ldot" style="background:#2980b9"></span> Santiago Carvajal</div>
+  <div class="lrow"><span class="ldot" style="background:#f39c12"></span> Juan David Arango</div>
+  <div class="lrow"><span class="ldot" style="background:#9b59b6"></span> Sebastian Carrasquilla</div>
+</div>
+<script>
+const map = L.map('map', {zoomControl:true}).setView([39,-98],4);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+  attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19}).addTo(map);
+
+let markers=[], currentRep='all';
+
+function addMarker(lat,lon,gc,rc,radius,rep,pb,gb,name,popup){
+  const m=L.circleMarker([lat,lon],{
+    radius:radius,fillColor:gc,color:rc,weight:2.5,
+    fillOpacity:0.85,opacity:1
+  }).addTo(map);
+  m.bindPopup(popup,{maxWidth:320});
+  m.options.rep=rep; m.options.pb=pb; m.options.gb=gb; m.options.name=name;
+  markers.push(m);
+}
+
+addMarker(49.237498319953566,-123.17066988134626,"#e74c3c","#95a5a6",9,"Other","p0","md","Pallet Coffee Roasters Inc","<div class=\"pc\"><div class=\"ph\">Pallet Coffee Roasters Inc</div><div class=\"ploc\">Vancouver, BC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"mrow\"><span class=\"ml\">2026 Goal</span><span class=\"mv\">$25,000</span></div><div class=\"mrow\"><span class=\"ml\">2026 Revenue</span><span class=\"mv\">$0</span></div><div class=\"mrow\"><span class=\"ml\">Achievement</span><span class=\"mv\">0.0%</span></div><div style=\"margin-top:4px;height:6px;background:#eee;border-radius:3px\"><div style=\"width:0%;height:100%;background:#e74c3c;border-radius:3px\"></div></div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(52.2690628,-113.8141464,"#6c757d","#95a5a6",7,"Other","none","none","Dose Coffee \u030a","<div class=\"pc\"><div class=\"ph\">Dose Coffee \u030a</div><div class=\"ploc\">Red Deer, AB</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(51.13162965927642,-114.0493972285546,"#6c757d","#95a5a6",7,"Other","none","none","Rosso Coffee Roasters","<div class=\"pc\"><div class=\"ph\">Rosso Coffee Roasters</div><div class=\"ploc\">Calgary, AB</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(50.99949831995357,-114.10666988134626,"#e74c3c","#95a5a6",11,"Other","p0","lg","Monogram Coffee","<div class=\"pc\"><div class=\"ph\">Monogram Coffee</div><div class=\"ploc\">Calgary, AB</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"mrow\"><span class=\"ml\">2026 Goal</span><span class=\"mv\">$38,000</span></div><div class=\"mrow\"><span class=\"ml\">2026 Revenue</span><span class=\"mv\">$0</span></div><div class=\"mrow\"><span class=\"ml\">Achievement</span><span class=\"mv\">0.0%</span></div><div style=\"margin-top:4px;height:6px;background:#eee;border-radius:3px\"><div style=\"width:0%;height:100%;background:#e74c3c;border-radius:3px\"></div></div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(43.856,-79.337,"#e74c3c","#95a5a6",11,"Other","p0","lg","Hatch Beverage Company, Ltd.","<div class=\"pc\"><div class=\"ph\">Hatch Beverage Company, Ltd.</div><div class=\"ploc\">Markham, ON</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"mrow\"><span class=\"ml\">2026 Goal</span><span class=\"mv\">$40,699</span></div><div class=\"mrow\"><span class=\"ml\">2026 Revenue</span><span class=\"mv\">$0</span></div><div class=\"mrow\"><span class=\"ml\">Achievement</span><span class=\"mv\">0.0%</span></div><div style=\"margin-top:4px;height:6px;background:#eee;border-radius:3px\"><div style=\"width:0%;height:100%;background:#e74c3c;border-radius:3px\"></div></div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(53.46434199188645,-113.431394331639,"#6c757d","#95a5a6",7,"Other","none","none","Rogue Wave Coffee","<div class=\"pc\"><div class=\"ph\">Rogue Wave Coffee</div><div class=\"ploc\">Edmonton, AB</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(49.32,-123.07,"#6c757d","#95a5a6",7,"Other","none","none","House Of Funk","<div class=\"pc\"><div class=\"ph\">House Of Funk</div><div class=\"ploc\">North Vancouver, BC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(43.73762965927642,-79.33939722855459,"#6c757d","#95a5a6",7,"Other","none","none","Ethica Roasters","<div class=\"pc\"><div class=\"ph\">Ethica Roasters</div><div class=\"ploc\">Toronto, ON</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(53.63262965927642,-113.4863972285546,"#6c757d","#95a5a6",7,"Other","none","none","Candid Coffee Roasters","<div class=\"pc\"><div class=\"ph\">Candid Coffee Roasters</div><div class=\"ploc\">Edmonton, AB</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(53.500498319953564,-113.54366988134626,"#6c757d","#95a5a6",7,"Other","none","none","Thecolombian","<div class=\"pc\"><div class=\"ph\">Thecolombian</div><div class=\"ploc\">Edmonton, AB</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(49.3136655,-122.955336,"#6c757d","#95a5a6",7,"Other","none","none","Sorellina Coffee","<div class=\"pc\"><div class=\"ph\">Sorellina Coffee</div><div class=\"ploc\">Sherwood Park, BC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(45.58962965927642,-73.56239722855459,"#6c757d","#95a5a6",7,"Other","none","none","ESCAPE COFFEE COMPANY","<div class=\"pc\"><div class=\"ph\">ESCAPE COFFEE COMPANY</div><div class=\"ploc\">Montr\u00e9al, QC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(43.60549831995357,-79.39666988134626,"#6c757d","#95a5a6",7,"Other","none","none","The Library Specialty Coffee Shop","<div class=\"pc\"><div class=\"ph\">The Library Specialty Coffee Shop</div><div class=\"ploc\">Toronto, ON</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(45.57723063721139,-73.44516701386388,"#6c757d","#95a5a6",7,"Other","none","none","94 CELSIUS","<div class=\"pc\"><div class=\"ph\">94 CELSIUS</div><div class=\"ploc\">Montreal, QC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(49.4901506,-119.5856465,"#e74c3c","#e74c3c",14,"Pablo Corredor","p0","xl","Anecdote Coffee","<div class=\"pc\"><div class=\"ph\">Anecdote Coffee</div><div class=\"ploc\">Edmonton, BC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#e74c3c;color:white\">Pablo Corredor</span></div><div class=\"pm\"><div class=\"mrow\"><span class=\"ml\">2026 Goal</span><span class=\"mv\">$79,997</span></div><div class=\"mrow\"><span class=\"ml\">2026 Revenue</span><span class=\"mv\">$0</span></div><div class=\"mrow\"><span class=\"ml\">Achievement</span><span class=\"mv\">0.0%</span></div><div style=\"margin-top:4px;height:6px;background:#eee;border-radius:3px\"><div style=\"width:0%;height:100%;background:#e74c3c;border-radius:3px\"></div></div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(49.3479861,-124.4439409,"#6c757d","#95a5a6",7,"Other","none","none","French Press Coffee Roasters","<div class=\"pc\"><div class=\"ph\">French Press Coffee Roasters</div><div class=\"ploc\">Qualicum Beach, BC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(53.5256963,-113.296631,"#e74c3c","#95a5a6",14,"Other","p0","xl","Roasti Coffee Co","<div class=\"pc\"><div class=\"ph\">Roasti Coffee Co</div><div class=\"ploc\">Sherwood Park, AB</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"mrow\"><span class=\"ml\">2026 Goal</span><span class=\"mv\">$87,758</span></div><div class=\"mrow\"><span class=\"ml\">2026 Revenue</span><span class=\"mv\">$0</span></div><div class=\"mrow\"><span class=\"ml\">Achievement</span><span class=\"mv\">0.0%</span></div><div style=\"margin-top:4px;height:6px;background:#eee;border-radius:3px\"><div style=\"width:0%;height:100%;background:#e74c3c;border-radius:3px\"></div></div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(49.283,-123.08210912703474,"#6c757d","#95a5a6",7,"Other","none","none","Prototype Coffee","<div class=\"pc\"><div class=\"ph\">Prototype Coffee</div><div class=\"ploc\">Vancouver, BC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(43.405498319953566,-80.54166988134627,"#6c757d","#95a5a6",7,"Other","none","none","Contrabean Roasting","<div class=\"pc\"><div class=\"ph\">Contrabean Roasting</div><div class=\"ploc\">Kitchener, ON</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(53.546,-113.45510912703475,"#6c757d","#95a5a6",7,"Other","none","none","Alternate Route Coffee Co.","<div class=\"pc\"><div class=\"ph\">Alternate Route Coffee Co.</div><div class=\"ploc\">Edmonton, AB</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(45.457498319953565,-73.61966988134625,"#6c757d","#95a5a6",7,"Other","none","none","Traffic Coffee","<div class=\"pc\"><div class=\"ph\">Traffic Coffee</div><div class=\"ploc\">Montr\u00e9al, QC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(46.1320009,-64.8791564,"#e74c3c","#e74c3c",11,"Pablo Corredor","p0","lg","Epoch Chemistry Coffee","<div class=\"pc\"><div class=\"ph\">Epoch Chemistry Coffee</div><div class=\"ploc\">Moncton New Brunswick, NB</div><div class=\"prep\"><span class=\"badge\" style=\"background:#e74c3c;color:white\">Pablo Corredor</span></div><div class=\"pm\"><div class=\"mrow\"><span class=\"ml\">2026 Goal</span><span class=\"mv\">$49,998</span></div><div class=\"mrow\"><span class=\"ml\">2026 Revenue</span><span class=\"mv\">$0</span></div><div class=\"mrow\"><span class=\"ml\">Achievement</span><span class=\"mv\">0.0%</span></div><div style=\"margin-top:4px;height:6px;background:#eee;border-radius:3px\"><div style=\"width:0%;height:100%;background:#e74c3c;border-radius:3px\"></div></div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(49.20349831995357,-123.02966988134627,"#6c757d","#95a5a6",7,"Other","none","none","Home Island Coffee","<div class=\"pc\"><div class=\"ph\">Home Island Coffee</div><div class=\"ploc\">Burnaby, BC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(45.503,-73.53110912703474,"#6c757d","#95a5a6",7,"Other","none","none","Cafe Pista","<div class=\"pc\"><div class=\"ph\">Cafe Pista</div><div class=\"ploc\">Montr\u00e9al, QC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(45.9933594,-66.7695892,"#6c757d","#95a5a6",7,"Other","none","none","Saltwinds Coffee","<div class=\"pc\"><div class=\"ph\">Saltwinds Coffee</div><div class=\"ploc\">Douglas, NB</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(45.52832226431513,-73.66888910119374,"#6c757d","#95a5a6",7,"Other","none","none","Colorfull Coffee","<div class=\"pc\"><div class=\"ph\">Colorfull Coffee</div><div class=\"ploc\">Montreal , QC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(45.42634199188645,-73.491394331639,"#6c757d","#95a5a6",7,"Other","none","none","Canadian Roasting Society","<div class=\"pc\"><div class=\"ph\">Canadian Roasting Society</div><div class=\"ploc\">Montreal, QC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(45.59462965927642,-73.5463972285546,"#6c757d","#95a5a6",7,"Other","none","none","ZAB caf\u00e9","<div class=\"pc\"><div class=\"ph\">ZAB caf\u00e9</div><div class=\"ploc\">Montreal, QC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(51.0866897,-115.3481135,"#6c757d","#95a5a6",7,"Other","none","none","Eclipse Coffee Roasters","<div class=\"pc\"><div class=\"ph\">Eclipse Coffee Roasters</div><div class=\"ploc\">Canmore, AB</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(49.6850876,-115.9819477,"#6c757d","#95a5a6",7,"Other","none","none","Kickturncoffee","<div class=\"pc\"><div class=\"ph\">Kickturncoffee</div><div class=\"ploc\">Kimberley,, BC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(45.3583853,-75.5707311,"#6c757d","#95a5a6",7,"Other","none","none","the artery community roasters","<div class=\"pc\"><div class=\"ph\">the artery community roasters</div><div class=\"ploc\">Gloucester, ON</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(49.0846258,-123.057938,"#e74c3c","#95a5a6",14,"Other","p0","xl","Swiss Water\u00ae Decaf","<div class=\"pc\"><div class=\"ph\">Swiss Water\u00ae Decaf</div><div class=\"ploc\">Delta, BC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"mrow\"><span class=\"ml\">2026 Goal</span><span class=\"mv\">$83,841</span></div><div class=\"mrow\"><span class=\"ml\">2026 Revenue</span><span class=\"mv\">$0</span></div><div class=\"mrow\"><span class=\"ml\">Achievement</span><span class=\"mv\">0.0%</span></div><div style=\"margin-top:4px;height:6px;background:#eee;border-radius:3px\"><div style=\"width:0%;height:100%;background:#e74c3c;border-radius:3px\"></div></div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(43.4652699,-80.5222961,"#6c757d","#95a5a6",7,"Other","none","none","Midnight Run Cafe","<div class=\"pc\"><div class=\"ph\">Midnight Run Cafe</div><div class=\"ploc\">Waterloo, ON</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(45.37949831995356,-75.74666988134626,"#6c757d","#95a5a6",7,"Other","none","none","Z3 specialty coffee","<div class=\"pc\"><div class=\"ph\">Z3 specialty coffee</div><div class=\"ploc\">Ottawa, ON</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(43.451,-80.45310912703475,"#6c757d","#95a5a6",7,"Other","none","none","Roux bakehouse","<div class=\"pc\"><div class=\"ph\">Roux bakehouse</div><div class=\"ploc\">Kitchener, ON</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(43.543498319953564,-79.69366988134627,"#6c757d","#95a5a6",7,"Other","none","none","Bird & Wolf Specialty Coffee Roastery","<div class=\"pc\"><div class=\"ph\">Bird & Wolf Specialty Coffee Roastery</div><div class=\"ploc\">Mississauga, ON</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(43.651,-79.30810912703474,"#6c757d","#95a5a6",7,"Other","none","none","El Pacho Coffee Roasters","<div class=\"pc\"><div class=\"ph\">El Pacho Coffee Roasters</div><div class=\"ploc\">Toronto, ON</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(46.8137431,-71.2084061,"#6c757d","#95a5a6",7,"Other","none","none","Philo Coffee","<div class=\"pc\"><div class=\"ph\">Philo Coffee</div><div class=\"ploc\">Quebec, QC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(43.589,-79.60510912703475,"#6c757d","#95a5a6",7,"Other","none","none","Eon Specialty Coffee","<div class=\"pc\"><div class=\"ph\">Eon Specialty Coffee</div><div class=\"ploc\">Mississauga, ON</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(45.425,-75.65810912703475,"#6c757d","#95a5a6",7,"Other","none","none","Lulo Coffee","<div class=\"pc\"><div class=\"ph\">Lulo Coffee</div><div class=\"ploc\">Ottawa, ON</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(45.8728241,-74.079442,"#6c757d","#95a5a6",7,"Other","none","none","Kohi ","<div class=\"pc\"><div class=\"ph\">Kohi </div><div class=\"ploc\">Shawbridge, QC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(45.508,-73.51510912703475,"#6c757d","#95a5a6",7,"Other","none","none","Za and Klo","<div class=\"pc\"><div class=\"ph\">Za and Klo</div><div class=\"ploc\">Montreal, QC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(43.8801166,-79.4392925,"#6c757d","#95a5a6",7,"Other","none","none","Terminal 3 Roasters","<div class=\"pc\"><div class=\"ph\">Terminal 3 Roasters</div><div class=\"ploc\">Richmond Hill, ON</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(49.249,-122.94110912703475,"#6c757d","#95a5a6",7,"Other","none","none","NOCT COFFEE","<div class=\"pc\"><div class=\"ph\">NOCT COFFEE</div><div class=\"ploc\">Burnaby, BC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(42.2858536,-82.9780695,"#6c757d","#2980b9",7,"Santiago Carvajal","none","none","Caf\u00e9 Fabrique","<div class=\"pc\"><div class=\"ph\">Caf\u00e9 Fabrique</div><div class=\"ploc\">Windsor, Ontario</div><div class=\"prep\"><span class=\"badge\" style=\"background:#2980b9;color:white\">Santiago Carvajal</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+addMarker(49.33562965927642,-122.9723972285546,"#6c757d","#95a5a6",7,"Other","none","none","49th Parallel","<div class=\"pc\"><div class=\"ph\">49th Parallel</div><div class=\"ploc\">Burnaby, BC</div><div class=\"prep\"><span class=\"badge\" style=\"background:#95a5a6;color:white\">Other</span></div><div class=\"pm\"><div class=\"ng\">No 2026 goal set</div></div><div class=\"pf2\"><span>\u2014</span></div></div>");
+
+function applyFilters(){
+  const repF=currentRep;
+  const pctF=document.getElementById('pct-filter').value;
+  const goalF=document.getElementById('goal-filter').value;
+  const q=(document.getElementById('search-box').value||'').toLowerCase().trim();
+  markers.forEach(m=>{
+    const ok=(repF==='all'||m.options.rep===repF)
+      &&(pctF==='all'||m.options.pb===pctF)
+      &&(goalF==='all'||m.options.gb===goalF)
+      &&(!q||m.options.name.toLowerCase().includes(q));
+    m.setStyle({fillOpacity:ok?0.85:0,opacity:ok?1:0});
+    ok?m.options._visible=true:m.options._visible=false;
+    if(!ok&&m.isPopupOpen())m.closePopup();
+  });
+}
+
+function setRep(rep){
+  currentRep=rep;
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  const ids={all:'btn-all','Pablo Corredor':'btn-pablo','Santiago Carvajal':'btn-santiago','Juan David Arango':'btn-juan','Sebastian Carrasquilla':'btn-sebastian'};
+  if(ids[rep])document.getElementById(ids[rep]).classList.add('active');
+  applyFilters();
+}
+</script></body></html>
