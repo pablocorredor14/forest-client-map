@@ -117,8 +117,9 @@ def marker_radius(goal):
     return 18
 
 def generate_html(companies):
+    US_VALS = {'US', 'USA', 'United States', 'Canada'}
     us_ca = [c for c in companies
-             if c.get('country') in ('US', 'Canada')
+             if c.get('country') in US_VALS
              and c.get('lat') and c.get('lon')]
 
     now = datetime.now(timezone.utc).strftime('%b %d, %Y %H:%M UTC')
@@ -363,7 +364,8 @@ def main():
         if geo and geo.get('lat') and geo.get('lon'):
             c['lat'] = geo['lat']
             c['lon'] = geo['lon']
-            countries_ok = c.get('country') in ('US', 'Canada') or geo.get('country') in ('US', 'Canada')
+            US_VALS = {'US', 'USA', 'United States', 'Canada'}
+            countries_ok = c.get('country') in US_VALS or geo.get('country') in US_VALS
             if countries_ok or (geo.get('lat') and 20 < geo['lat'] < 72 and -170 < geo.get('lon', 0) < -50):
                 companies.append(c)
 
