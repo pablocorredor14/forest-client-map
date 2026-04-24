@@ -133,7 +133,8 @@ def generate_html(companies):
     US_VALS = {'US', 'USA', 'United States', 'Canada'}
     us_ca = [c for c in companies
              if c.get('country') in US_VALS
-             and c.get('lat') and c.get('lon')]
+             and c.get('lat') and c.get('lon')
+             and c['lon'] < -50]  # exclude companies geocoded outside North America
 
     now = datetime.now(timezone.utc).strftime('%b %d, %Y %H:%M UTC')
     n = len(us_ca)
