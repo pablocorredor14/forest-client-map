@@ -54,7 +54,7 @@ def fetch_2026_deals():
         body = {
             'filterGroups': [{'filters': [
                 {'propertyName': 'closedate', 'operator': 'BETWEEN',
-                 'value': '1735689600000', 'highValue': '1767225600000'},
+                 'value': '1767225600000', 'highValue': '1798761599000'},
                 {'propertyName': 'dealstage', 'operator': 'EQ', 'value': '75989797'}
             ]}],
             'properties': ['amount'],
